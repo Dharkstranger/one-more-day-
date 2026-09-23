@@ -18,3 +18,15 @@ export async function findScripturesByTags(db: SQLiteDatabase, tags: string[], l
     ...tags, ...tags.map((t) => `%,${t},%`), ...tags, limit,
   );
 }
+
+/** Same verse all day, a different one tomorrow. */
+export async function verseOfTheDay(db: SQLiteDatabase, dayNumber: number): Promise<ScriptureRow | null> {
+  const row = await db.getFirstAsync<{ n: number }>('SELECT COUNT(*) AS n FROM scriptures');
+  const n = row?.n ?? 0;
+  if (!n) return null;
+  return db.getFirstAsync<ScriptureRow>('SELECT * FROM scriptures ORDER BY id LIMIT 1 OFFSET ?', dayNumber % n);
+}
+
+export function scriptureRef(s: Pick<ScriptureRow, 'book' | 'chapter' | 'verse' | 'translation'>): string {
+  return `${s.book} ${s.chapter}:${s.verse} (${s.translation})`;
+}

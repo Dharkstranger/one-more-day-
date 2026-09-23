@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true
     },
@@ -19,7 +19,15 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "output": "single",
+      "bundler": "metro",
+      "name": "One More Day",
+      "shortName": "One More Day",
+      "description": "A free, private companion for anyone fighting an addiction. One day at a time.",
+      "themeColor": "#141A3D",
+      "backgroundColor": "#141A3D",
+      "lang": "en"
     },
     "plugins": [
       "expo-sqlite",
@@ -32,8 +40,15 @@
           "isAndroidBackgroundLocationEnabled": true
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      "expo-router",
+      "expo-font",
+      "expo-sharing"
     ],
-    "scheme": "onemoreday"
+    "scheme": "onemoreday",
+    "backgroundColor": "#141A3D",
+    "experiments": {
+      "typedRoutes": false
+    }
   }
 }

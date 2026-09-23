@@ -1,31 +1,31 @@
 // One More Day relay: the only server in the system.
-// It holds the Anthropic API key, forwards a sponsor request, and returns the reply.
-// It stores nothing and logs no message content. There are no accounts.
+// Holds the Anthropic API key, forwards one sponsor turn, returns the reply.
+// Stores nothing. Logs no message content. No accounts.
 //
-// Exposes a standard Web `fetch` handler, so it runs on Cloudflare Workers,
-// Deno Deploy, Bun, Vercel, or Node (see node-server.ts).
+// Used by api/sponsor.ts (Vercel) and server/node-server.ts (any Node host).
+// The handler takes a standard Web Request, so it also runs on Cloudflare,
+// Deno, or Bun with a one-line wrapper. See docs/self-hosting.md.
 import Anthropic from '@anthropic-ai/sdk';
-import { SPONSOR_OUTPUT_SCHEMA, SPONSOR_SYSTEM_PROMPT } from '../../src/prompts/sponsor.ts';
-import {
-  renderContext,
-  validateSponsorRequest,
-  type SponsorRequest,
-  type SponsorResponse,
-} from '../../src/services/ai/contract.ts';
+import { SPONSOR_OUTPUT_SCHEMA, SPONSOR_SYSTEM_PROMPT } from '../src/prompts/sponsor';
+import { renderContext, validateSponsorRequest, type SponsorRequest, type SponsorResponse } from '../src/services/ai/contract';
 
-const MODEL = process.env.SPONSOR_MODEL ?? 'claude-opus-5';
-const RATE_LIMIT_PER_MINUTE = Number(process.env.RATE_LIMIT_PER_MINUTE ?? 20);
+const MODEL = process.env.SPONSOR_MODEL || 'claude-opus-5';
+const RATE_LIMIT_PER_MINUTE = Number(process.env.RATE_LIMIT_PER_MINUTE || 20);
 
-const client = new Anthropic(); // reads ANTHROPIC_API_KEY
+let client: Anthropic | null = null;
+function getClient(): Anthropic | null {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
+  client ??= new Anthropic();
+  return client;
+}
 
-// Best-effort, in-memory, per-instance. IPs are hashed-by-Map-key only and
-// dropped after a minute; nothing is written anywhere.
+// Best-effort, in-memory, per-instance. Entries expire after a minute; nothing is written anywhere.
 const hits = new Map<string, { count: number; resetAt: number }>();
-function rateLimited(ip: string): boolean {
+function rateLimited(key: string): boolean {
   const now = Date.now();
-  const entry = hits.get(ip);
+  const entry = hits.get(key);
   if (!entry || entry.resetAt < now) {
-    hits.set(ip, { count: 1, resetAt: now + 60_000 });
+    hits.set(key, { count: 1, resetAt: now + 60_000 });
     if (hits.size > 10_000) for (const [k, v] of hits) if (v.resetAt < now) hits.delete(k);
     return false;
   }
@@ -34,17 +34,20 @@ function rateLimited(ip: string): boolean {
 }
 
 function json(status: number, body: unknown): Response {
-  return new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+  });
 }
 
-export async function handleSponsor(request: SponsorRequest): Promise<SponsorResponse> {
+export async function askClaude(anthropic: Anthropic, request: SponsorRequest): Promise<SponsorResponse> {
   // Context goes at the start of the newest user turn so the system prompt
   // stays byte-identical across requests and can be cached.
   const turns = request.messages.map((m) => ({ role: m.role, content: m.content }));
   const last = turns[turns.length - 1];
   last.content = `${renderContext(request.mode, request.context)}\n\n${last.content}`;
 
-  const response = await client.beta.messages.create({
+  const response = await anthropic.beta.messages.create({
     model: MODEL,
     max_tokens: 16000,
     betas: ['server-side-fallback-2026-07-01'],
@@ -61,18 +64,20 @@ export async function handleSponsor(request: SponsorRequest): Promise<SponsorRes
   const text = response.content.flatMap((b) => (b.type === 'text' ? [b.text] : [])).join('');
   const parsed = JSON.parse(text) as SponsorResponse;
 
-  // Only let the model pick a verse we actually sent, so a misquote can't reach the person.
+  // Only allow a verse the app actually sent, so a misquote can never reach the person.
   const verseIds = new Set(request.context.candidateVerses.map((v) => v.id));
   if (parsed.verse_id && !verseIds.has(parsed.verse_id)) parsed.verse_id = null;
   return parsed;
 }
 
-export async function fetchHandler(req: Request): Promise<Response> {
-  const url = new URL(req.url);
-  if (req.method === 'GET' && url.pathname === '/health') return json(200, { ok: true });
-  if (req.method !== 'POST' || url.pathname !== '/sponsor') return json(404, { error: 'not found' });
+/** POST body: SponsorRequest. Returns SponsorResponse. Contract: docs/api.md */
+export async function handleSponsorRequest(req: Request): Promise<Response> {
+  if (req.method !== 'POST') return json(405, { error: 'use POST' });
 
-  const ip = req.headers.get('cf-connecting-ip') ?? req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const anthropic = getClient();
+  if (!anthropic) return json(503, { error: 'sponsor not configured on this server' });
+
+  const ip = req.headers.get('x-real-ip') ?? req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
   if (rateLimited(ip)) return json(429, { error: 'slow down' });
 
   let body: unknown;
@@ -85,7 +90,7 @@ export async function fetchHandler(req: Request): Promise<Response> {
   if (invalid) return json(400, { error: invalid });
 
   try {
-    return json(200, await handleSponsor(body as SponsorRequest));
+    return json(200, await askClaude(anthropic, body as SponsorRequest));
   } catch (e) {
     // Log the error type only, never the request body.
     if (e instanceof Anthropic.RateLimitError) return json(503, { error: 'busy, try again shortly' });
@@ -98,4 +103,6 @@ export async function fetchHandler(req: Request): Promise<Response> {
   }
 }
 
-export default { fetch: fetchHandler };
+export function handleHealth(): Response {
+  return json(200, { ok: true, sponsor: Boolean(process.env.ANTHROPIC_API_KEY), model: MODEL });
+}

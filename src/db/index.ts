@@ -5,3 +5,7 @@ export * from './repo/logs';
 export * from './repo/profile';
 export * from './repo/dangerZones';
 export * from './repo/scriptures';
+export * from './repo/details';
+export * from './repo/checkins';
+export * from './repo/rays';
+export * from './repo/backup';

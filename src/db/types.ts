@@ -51,3 +51,43 @@ export interface ScriptureRow {
   primary_emotion_tag: string | null;
   secondary_tags: string | null;
 }
+
+export type TrackingMode = 'quit' | 'observe';
+
+export interface AddictionDetailsRow {
+  addiction_id: string;
+  emoji: string | null;
+  mode: TrackingMode;
+  weekly_cost: number;
+  weekly_hours: number;
+  /** JSON array of strings. */
+  reasons: string;
+}
+
+export interface CheckinRow {
+  id: string;
+  /** Local date, YYYY-MM-DD. */
+  day: string;
+  mood: 1 | 2 | 3 | 4 | 5;
+  gratitude: string | null;
+  note: string | null;
+  created_at: string;
+}
+
+export type RayKind =
+  | 'first_step'
+  | 'checkin'
+  | 'urge_beaten'
+  | 'honest_slip'
+  | 'reflection'
+  | 'milestone';
+
+export interface RayRow {
+  id: string;
+  kind: RayKind;
+  amount: number;
+  addiction_id: string | null;
+  /** Makes an award idempotent, e.g. "checkin:2026-09-23". */
+  ref: string | null;
+  created_at: string;
+}

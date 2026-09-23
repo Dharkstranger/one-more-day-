@@ -63,4 +63,40 @@ CREATE INDEX idx_logs_addiction_time ON logs(addiction_id, timestamp);
 CREATE INDEX idx_scriptures_primary_tag ON scriptures(primary_emotion_tag);
 `;
 
-export const MIGRATIONS: string[] = [SCHEMA_V1];
+// v2: Sunshine (gamification), daily check-ins, and per-tracker details.
+// The five v1 tables are unchanged.
+export const SCHEMA_V2 = `
+-- Extra settings per tracked addiction (one row each).
+CREATE TABLE addiction_details (
+    addiction_id TEXT PRIMARY KEY,
+    emoji TEXT,
+    mode TEXT NOT NULL DEFAULT 'quit' CHECK(mode IN ('quit', 'observe')),
+    weekly_cost REAL NOT NULL DEFAULT 0,
+    weekly_hours REAL NOT NULL DEFAULT 0,
+    reasons TEXT NOT NULL DEFAULT '[]',
+    FOREIGN KEY (addiction_id) REFERENCES addictions(id)
+);
+
+-- One check-in per local calendar day.
+CREATE TABLE checkins (
+    id TEXT PRIMARY KEY,
+    day TEXT NOT NULL UNIQUE,
+    mood INTEGER NOT NULL CHECK(mood BETWEEN 1 AND 5),
+    gratitude TEXT,
+    note TEXT,
+    created_at TEXT NOT NULL
+);
+
+-- Rays of light: lifetime points. Rows are only ever added, never removed by a slip.
+CREATE TABLE rays (
+    id TEXT PRIMARY KEY,
+    kind TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    addiction_id TEXT,
+    ref TEXT UNIQUE,
+    created_at TEXT NOT NULL
+);
+CREATE INDEX idx_rays_created ON rays(created_at);
+`;
+
+export const MIGRATIONS: string[] = [SCHEMA_V1, SCHEMA_V2];

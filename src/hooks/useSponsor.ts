@@ -2,9 +2,11 @@ import { useCallback, useRef, useState } from 'react';
 import { useSQLiteContext } from 'expo-sqlite';
 import type { AddictionRow } from '../db/types';
 import { setAiSummary } from '../db/repo/logs';
+import { awardReflection } from '../services/sunshine/award';
+import { localDay } from '../services/sunshine/engine';
 import { buildSponsorContext } from '../services/ai/buildContext';
 import { detectCrisis } from '../services/ai/crisis';
-import { askSponsor, OFFLINE_REPLY } from '../services/ai/sponsorClient';
+import { askSponsor, OFFLINE_REPLIES } from '../services/ai/sponsorClient';
 import type { SponsorMode, SponsorResponse, SponsorTurn } from '../services/ai/contract';
 import { LIMITS } from '../services/ai/contract';
 
@@ -57,11 +59,13 @@ export function useSponsor(opts: { mode: SponsorMode; addiction: AddictionRow | 
         setMessages([...history, { role: 'assistant', content: res.reply, verse, prayerChapter: res.prayer_chapter }]);
         if (res.profile_suggestions.length) setProfileSuggestions(res.profile_suggestions);
         if (opts.logId && res.summary) await setAiSummary(db, opts.logId, res.summary);
+        // Talking it through earns light once per conversation topic per day.
+        await awardReflection(db, opts.logId ?? `${opts.mode}:${localDay()}`);
       } catch {
         const verse = context.candidateVerses[0];
         setMessages([
           ...history,
-          { role: 'assistant', content: OFFLINE_REPLY, verse, prayerChapter: context.prayerChapters[0] },
+          { role: 'assistant', content: OFFLINE_REPLIES[opts.mode], verse, prayerChapter: context.prayerChapters[0] },
         ]);
       } finally {
         setPending(false);
@@ -70,5 +74,10 @@ export function useSponsor(opts: { mode: SponsorMode; addiction: AddictionRow | 
     [db, messages, opts.mode, opts.addiction, opts.logId, opts.emotion],
   );
 
-  return { messages, pending, showCrisis, profileSuggestions, send };
+  const dismissSuggestion = useCallback(
+    (key: string) => setProfileSuggestions((list) => list.filter((s) => s.key !== key)),
+    [],
+  );
+
+  return { messages, pending, showCrisis, profileSuggestions, send, dismissSuggestion };
 }

@@ -33,6 +33,7 @@ export async function deleteAddiction(db: SQLiteDatabase, id: string): Promise<v
   await db.withTransactionAsync(async () => {
     await db.runAsync('DELETE FROM logs WHERE addiction_id = ?', id);
     await db.runAsync('DELETE FROM danger_zones WHERE addiction_id = ?', id);
+    await db.runAsync('DELETE FROM addiction_details WHERE addiction_id = ?', id);
     await db.runAsync('DELETE FROM addictions WHERE id = ?', id);
   });
 }
