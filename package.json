@@ -54,5 +54,6 @@
     "relay": "tsx server/node-server.ts",
     "build:web": "expo export -p web && node scripts/postexport-web.mjs"
   },
-  "private": true
+  "private": true,
+  "license": "AGPL-3.0-or-later"
 }

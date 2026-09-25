@@ -30,12 +30,13 @@ export function BreathingCircle({ onCycle }: { onCycle?: (n: number) => void }) 
 
   return (
     <View className="my-6 h-64 items-center justify-center">
-      <Animated.View
-        style={{ transform: [{ scale }] }}
-        className="absolute h-64 w-64 rounded-full bg-sun/30"
-      />
-      <Animated.View style={{ transform: [{ scale }] }} className="absolute h-44 w-44 rounded-full bg-sun/70" />
+      {/* Animated views take plain styles; NativeWind classes don't apply to them. */}
+      <Animated.View style={[circle(256, 'rgba(255, 209, 102, 0.28)'), { transform: [{ scale }] }]} />
+      <Animated.View style={[circle(176, 'rgba(255, 209, 102, 0.75)'), { transform: [{ scale }] }]} />
       <Text className="font-display text-2xl text-white">{PHASES[phase].label}</Text>
     </View>
   );
 }
+
+const circle = (size: number, backgroundColor: string) =>
+  ({ position: 'absolute', width: size, height: size, borderRadius: size / 2, backgroundColor }) as const;
