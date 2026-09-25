@@ -24,7 +24,7 @@ npm run build:web
 ```
 
 - Put rules in pure functions under `src/services/` and add tests in `test/`.
-- Plain, kind words in the interface. No jargon, no shame.
+- Plain, kind words in the interface. No jargon, no shame. All text lives in `src/copy/en.ts`; follow `.agents/product-marketing.md`.
 - Bible verses only through `scripts/build-scripture-seed.mjs`.
 - Cite a source for any health claim or helpline number.
 

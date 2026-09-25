@@ -1,11 +1,13 @@
-import { Pressable, Text } from 'react-native';
+import { Text } from 'react-native';
+import { PressScale } from '../motion/PressScale';
 import { tap } from '../../services/haptics';
 
 export function Chip({ label, selected, onPress, dark = false }: { label: string; selected: boolean; onPress: () => void; dark?: boolean }) {
   const idle = dark ? 'bg-white/10 border-white/25' : 'bg-white border-ink/10';
   const idleText = dark ? 'text-white' : 'text-ink';
   return (
-    <Pressable
+    <PressScale
+      depth={0.92}
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={() => {
@@ -15,6 +17,6 @@ export function Chip({ label, selected, onPress, dark = false }: { label: string
       className={`mb-2 mr-2 rounded-full border px-4 py-2 ${selected ? 'border-amber bg-sun' : idle}`}
     >
       <Text className={`font-body-bold ${selected ? 'text-ink' : idleText}`}>{label}</Text>
-    </Pressable>
+    </PressScale>
   );
 }

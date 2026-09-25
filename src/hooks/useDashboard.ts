@@ -12,6 +12,7 @@ import type { Progress } from '../services/recovery/progress';
 import { levelFor, localDay, trackerStats, weatherFor, type LevelProgress, type TrackerStats, type Weather } from '../services/sunshine/engine';
 import { syncMilestones } from '../services/sunshine/award';
 import { DAY_MS } from '../services/recovery/time';
+import { getBibleLanguage, TRANSLATION_FOR } from '../services/scripture/prefs';
 
 export interface Tracker {
   addiction: AddictionRow;
@@ -66,7 +67,7 @@ export function useDashboard() {
     }
 
     const [rays, today] = await Promise.all([totalRays(db), getCheckin(db, localDay(now))]);
-    const verse = await verseOfTheDay(db, Math.floor(now.getTime() / DAY_MS));
+    const verse = await verseOfTheDay(db, Math.floor(now.getTime() / DAY_MS), TRANSLATION_FOR[await getBibleLanguage(db)]);
     const shortest = trackers.length ? Math.min(...trackers.map((t) => t.progress.streakDays)) : 0;
 
     setData({

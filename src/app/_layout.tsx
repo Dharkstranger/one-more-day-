@@ -15,6 +15,7 @@ import { Nunito_600SemiBold } from '@expo-google-fonts/nunito/600SemiBold';
 import { Nunito_700Bold } from '@expo-google-fonts/nunito/700Bold';
 import { Nunito_800ExtraBold } from '@expo-google-fonts/nunito/800ExtraBold';
 import { DATABASE_NAME, migrateDbIfNeeded } from '../db';
+import { CelebrationProvider } from '../components/motion/Celebration';
 
 function Loading() {
   return (
@@ -39,7 +40,9 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <Suspense fallback={<Loading />}>
         <SQLiteProvider databaseName={DATABASE_NAME} onInit={migrateDbIfNeeded} useSuspense>
-          <Stack screenOptions={{ headerShown: false, animation: 'fade', contentStyle: { backgroundColor: '#141A3D' } }} />
+          <CelebrationProvider>
+            <Stack screenOptions={{ headerShown: false, animation: 'fade', contentStyle: { backgroundColor: '#141A3D' } }} />
+          </CelebrationProvider>
         </SQLiteProvider>
       </Suspense>
       <StatusBar style="light" />

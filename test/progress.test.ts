@@ -42,7 +42,8 @@ test('reads SQLite CURRENT_TIMESTAMP format as UTC', () => {
 test('banked hours are never framed as permission, and substances get the tolerance warning', () => {
   const p = computeProgress(addiction, [], at(61));
   const m = milestoneMessage('alcohol', 'substance', p);
-  assert.match(m.body, /keep it banked/);
+  assert.match(m.body, /Keep them banked/);
+  assert.doesNotMatch(m.body, /if you need it/);
   assert.ok(m.safetyNote?.includes('overdose'));
   assert.equal(milestoneMessage('social media', 'digital', p).safetyNote, undefined);
 });

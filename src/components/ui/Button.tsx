@@ -1,4 +1,5 @@
-import { Pressable, Text } from 'react-native';
+import { Text } from 'react-native';
+import { PressScale } from '../motion/PressScale';
 import { tap } from '../../services/haptics';
 
 type Variant = 'sun' | 'dark' | 'ghost' | 'soft' | 'sage';
@@ -23,7 +24,7 @@ interface Props {
 export function Button({ label, onPress, variant = 'sun', icon, disabled, className = '' }: Props) {
   const s = STYLES[variant];
   return (
-    <Pressable
+    <PressScale
       accessibilityRole="button"
       disabled={disabled}
       onPress={() => {
@@ -36,6 +37,6 @@ export function Button({ label, onPress, variant = 'sun', icon, disabled, classN
     >
       {icon ? <Text className="mr-2 text-lg">{icon}</Text> : null}
       <Text className={`font-body-black text-base ${s.text}`}>{label}</Text>
-    </Pressable>
+    </PressScale>
   );
 }

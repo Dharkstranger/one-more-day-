@@ -15,6 +15,10 @@ import { useSponsor } from '../hooks/useSponsor';
 import type { SponsorMode } from '../services/ai/contract';
 import { SKY_GRADIENTS } from '../theme/sky';
 import { tap } from '../services/haptics';
+import { copy } from '../copy/en';
+import Animated, { FadeInUp, useReducedMotion } from 'react-native-reanimated';
+
+const c = copy.sponsor;
 
 const OPENERS: Record<SponsorMode, { hello: string; prompts: string[] }> = {
   urge: {
@@ -74,15 +78,15 @@ export default function Sponsor() {
             <View className="flex-row items-center justify-between py-2">
               {params.mode ? (
                 <Text onPress={() => router.back()} className="font-body-bold text-white/80">
-                  ‹ Back
+                  {c.back}
                 </Text>
               ) : (
                 <View />
               )}
-              <Label light>Private · not saved</Label>
+              <Label light>{c.private}</Label>
             </View>
             <Title light className="mb-3">
-              Talk
+              {c.title}
             </Title>
 
             <ScrollView ref={scroll} className="flex-1" contentContainerStyle={{ paddingBottom: 24 }}>
@@ -105,18 +109,18 @@ export default function Sponsor() {
               {profileSuggestions.map((s) => (
                 <View key={s.key} className="mb-3 rounded-2xl bg-cream p-4">
                   <Text className="font-body-semi text-ink">
-                    Remember this about you for next time? <Text className="font-body-black">{s.key.replace('_', ' ')}:</Text> {s.value}
+                    {c.remember} <Text className="font-body-black">{s.key.replace('_', ' ')}:</Text> {s.value}
                   </Text>
                   <View className="mt-2 flex-row">
                     <Chip
-                      label="Yes, remember"
+                      label={c.yes}
                       selected
                       onPress={async () => {
                         await setProfileValue(db, s.key, s.value);
                         dismissSuggestion(s.key);
                       }}
                     />
-                    <Chip label="No thanks" selected={false} onPress={() => dismissSuggestion(s.key)} />
+                    <Chip label={c.no} selected={false} onPress={() => dismissSuggestion(s.key)} />
                   </View>
                 </View>
               ))}
@@ -134,7 +138,7 @@ export default function Sponsor() {
               <TextInput
                 value={text}
                 onChangeText={setText}
-                placeholder="Type here…"
+                placeholder={c.placeholder}
                 placeholderTextColor="#A7A9C9"
                 multiline
                 maxLength={2000}
@@ -147,7 +151,7 @@ export default function Sponsor() {
                 onPress={() => submit(text)}
                 className={`rounded-full px-5 py-3 font-body-black text-base ${text.trim() ? 'bg-sun text-ink' : 'bg-white/10 text-white/40'}`}
               >
-                Send
+                {c.send}
               </Text>
             </View>
           </View>
@@ -160,9 +164,15 @@ export default function Sponsor() {
 
 function Bubble({ role, text }: { role: 'user' | 'assistant'; text: string }) {
   const mine = role === 'user';
+  const reduce = useReducedMotion();
   return (
-    <View className={`mb-3 max-w-[85%] rounded-3xl px-4 py-3 ${mine ? 'self-end rounded-br-md bg-sun' : 'self-start rounded-bl-md bg-cream'}`}>
-      <Text className="font-body text-base leading-6 text-ink">{text}</Text>
-    </View>
+    <Animated.View
+      entering={reduce ? undefined : FadeInUp.duration(320).springify().damping(16)}
+      style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '85%', marginBottom: 12 }}
+    >
+      <View className={`rounded-3xl px-4 py-3 ${mine ? 'rounded-br-md bg-sun' : 'rounded-bl-md bg-cream'}`}>
+        <Text className="font-body text-base leading-6 text-ink">{text}</Text>
+      </View>
+    </Animated.View>
   );
 }

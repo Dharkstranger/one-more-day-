@@ -41,6 +41,18 @@ Edit `src/config/crisisResources.ts`. Include the source URL in a comment so rev
 
 `src/services/sunshine/rules.ts` holds ray amounts, levels, the milestone ladder, and gentle-mode thresholds. Run `npm test` after changing.
 
+## Change the words in the app
+
+All interface text is in `src/copy/en.ts`. Before editing, read the voice guide in `.agents/product-marketing.md`. We write with the `copywriting` skill and check with `copy-editing` (both in `.claude/skills/`, MIT, by Corey Haines). To translate the interface, copy `en.ts` to a new language file.
+
+## Add a Bible language
+
+See [bible-data.md](bible-data.md#add-a-language).
+
+## Change how the Scripture Guide chooses
+
+`src/prompts/scriptureGuide.ts`. See [scripture-guide.md](scripture-guide.md).
+
 ## Change how the sponsor speaks
 
 `src/prompts/sponsor.ts`. Keep every rule in the "Safety rules" section (see [safety.md](safety.md)).

@@ -6,8 +6,8 @@ One day at a time, with an AI sponsor rooted in scripture, and light that never 
 <p>
   <img src="docs/images/04-home.png" width="200" alt="Home: the sky, your level and your streak" />
   <img src="docs/images/07-struggle-breathe.png" width="200" alt="I'm struggling: breathe with the circle" />
-  <img src="docs/images/11-slip-done.png" width="200" alt="After a slip: thank you for being honest" />
-  <img src="docs/images/13-journey.png" width="200" alt="Journey: from night to sunshine" />
+  <img src="docs/images/16-scripture-guide.png" width="200" alt="The Scripture Guide walks you through a passage chosen for your moment" />
+  <img src="docs/images/17-level-up.png" width="200" alt="A sunrise fills the screen at each new level" />
 </p>
 
 > **Not medical care.** In danger right now? Call your local emergency number. US: call or text **988**, or SAMHSA's free helpline **1-800-662-4357** ([samhsa.gov](https://www.samhsa.gov/find-help/national-helpline)).
@@ -24,7 +24,9 @@ One More Day is the opposite: **free forever, no account, no ads, no trackers, a
 - **"I'm struggling" button.** Breathing, your own reasons, ideas that fit your hobbies, a verse, and your AI sponsor.
 - **Slips without shame.** Log before or after. Honesty earns light. Your best run and lifetime light stay on screen.
 - **Sunshine.** Rays of light for check-ins, beaten urges and honesty. Seven levels from Night to Sunshine, and the sky brightens with you. [How it works](docs/sunshine.md).
-- **AI sponsor.** Warm, brief, never preachy. Picks a Bible verse for what you're going through, from verses the app provides, so it can't misquote. Suggests a chapter to pray through.
+- **Scripture Guide.** A separate AI agent searches and reads the whole Bible for your exact moment (what you're fighting, what just happened, the time of night, what you wrote) and chooses a passage on purpose. Then it walks you through it: why this passage, one question to sit with, a prayer, a chapter to read, and one next step. In **English, French, Igbo or Hebrew**. It only picks the reference; the words come straight from the Bible files, so it can't misquote. [How it works](docs/scripture-guide.md).
+- **AI sponsor.** Warm, brief, never preachy. Talk it through any time.
+- **Alive, not busy.** The sun rises as you earn light, stars twinkle, clouds drift, rays burst when you earn them, and a sunrise fills the screen at each new level. All of it switches off if your phone asks for less motion.
 - **Sees hard times coming.** Learns which days and times are hardest, and checks in before them (phone app).
 - **Milestones that don't invite relapse.** Banked "break time" is shown as proof you don't need it, with an overdose warning for substances.
 - **Risky places.** Optional alerts when you get near a place you marked (phone app; location never leaves the phone).
@@ -52,7 +54,7 @@ Everything is documented in [docs/](docs/README.md): architecture, privacy, safe
 
 ## Built with
 
-Expo (iOS, Android, web) · Expo Router · NativeWind · SQLite on-device (WebAssembly in browsers) · Claude API through a stateless relay · World English Bible (public domain, [ebible.org/web](https://ebible.org/web/)).
+Expo (iOS, Android, web) · Expo Router · NativeWind · Reanimated · SQLite on-device (WebAssembly in browsers) · Claude API through a stateless relay. Bibles: World English Bible, Louis Segond 1910, Bible Nsọ (Igbo), Westminster Leningrad Codex. All public domain; see [docs/bible-data.md](docs/bible-data.md). Copy written with [marketingskills](https://github.com/coreyhaines31/marketingskills) (MIT).
 
 ## License
 

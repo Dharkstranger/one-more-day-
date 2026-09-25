@@ -12,16 +12,18 @@ import { CUSTOM_EMOJIS, PRESETS, type AddictionPreset } from '../../config/prese
 import type { AddictionCategory, TrackingMode } from '../../db/types';
 import { startTracking } from '../../services/actions';
 import { success } from '../../services/haptics';
+import { copy } from '../../copy/en';
+import { Appear } from '../../components/motion/Appear';
+import { useCelebrate } from '../../components/motion/Celebration';
+
+const c = copy.newTracker;
 
 const INTERVALS = [7, 14, 30, 60, 90];
-const CATEGORIES: { id: AddictionCategory; label: string }[] = [
-  { id: 'substance', label: 'Something I take' },
-  { id: 'behavioral', label: 'Something I do' },
-  { id: 'digital', label: 'Something on a screen' },
-];
+const CATEGORIES: AddictionCategory[] = ['substance', 'behavioral', 'digital'];
 
 export default function NewTracker() {
   const db = useSQLiteContext();
+  const celebrate = useCelebrate();
   const { first } = useLocalSearchParams<{ first?: string }>();
   const [preset, setPreset] = useState<AddictionPreset | null>(null);
   const [name, setName] = useState('');
@@ -57,20 +59,22 @@ export default function NewTracker() {
     });
     success();
     router.replace('/');
+    celebrate(first ? 20 : 0);
   };
 
   return (
     <Screen level={2}>
       {!first ? (
         <Text onPress={() => router.back()} className="mb-2 font-body-bold text-white/80">
-          ‹ Back
+          {c.back}
         </Text>
       ) : null}
-      <Title light>What are you fighting?</Title>
+      <Title light>{c.title}</Title>
       <Body light className="mb-5 mt-2">
-        Pick one or type your own. Anything counts. You can add more later.
+        {c.subtitle}
       </Body>
 
+      <Appear index={1}>
       <Card>
         <View className="flex-row flex-wrap">
           {PRESETS.map((p) => (
@@ -78,93 +82,98 @@ export default function NewTracker() {
           ))}
         </View>
         <Field
-          label="Or name it yourself"
+          label={c.customLabel}
           value={name}
           onChangeText={(v) => {
             setName(v);
             setPreset(null);
           }}
-          placeholder="e.g. energy drinks, online arguments…"
+          placeholder={c.customPlaceholder}
           maxLength={40}
         />
         {!preset ? (
           <>
-            <Label className="mb-2">Pick a symbol</Label>
+            <Label className="mb-2">{c.symbol}</Label>
             <View className="mb-3 flex-row flex-wrap">
               {CUSTOM_EMOJIS.map((e) => (
                 <Chip key={e} label={e} selected={emoji === e} onPress={() => setEmoji(e)} />
               ))}
             </View>
-            <Label className="mb-2">What kind is it?</Label>
+            <Label className="mb-2">{c.kind}</Label>
             <View className="flex-row flex-wrap">
-              {CATEGORIES.map((c) => (
-                <Chip key={c.id} label={c.label} selected={category === c.id} onPress={() => setCategory(c.id)} />
+              {CATEGORIES.map((k) => (
+                <Chip key={k} label={c.kinds[k]} selected={category === k} onPress={() => setCategory(k)} />
               ))}
             </View>
           </>
         ) : null}
       </Card>
+      </Appear>
 
+      <Appear index={2}>
       <Card>
-        <Heading>What do you want to do?</Heading>
+        <Heading>{c.goalTitle}</Heading>
         <View className="mt-3 flex-row flex-wrap">
-          <Chip label="Stop completely" selected={mode === 'quit'} onPress={() => setMode('quit')} />
-          <Chip label="Just see how often" selected={mode === 'observe'} onPress={() => setMode('observe')} />
+          <Chip label={c.goalQuit} selected={mode === 'quit'} onPress={() => setMode('quit')} />
+          <Chip label={c.goalObserve} selected={mode === 'observe'} onPress={() => setMode('observe')} />
         </View>
         <Body className="mt-1 text-sm">
           {mode === 'observe'
-            ? 'No streaks, no pressure. Log it when it happens and we’ll show you the pattern. You can switch to stopping any time.'
-            : 'We’ll count every day you stay free and celebrate each milestone.'}
+            ? c.goalObserveBody
+            : c.goalQuitBody}
         </Body>
 
         {mode === 'quit' ? (
           <>
-            <Label className="mb-2 mt-5">Big milestone every</Label>
+            <Label className="mb-2 mt-5">{c.intervalLabel}</Label>
             <View className="flex-row flex-wrap">
               {INTERVALS.map((d) => (
                 <Chip key={d} label={`${d} days`} selected={interval === d} onPress={() => setInterval(d)} />
               ))}
             </View>
             <Body className="text-sm">
-              Each big milestone banks 24 hours of “break time”. Most people find they never want to spend it. That’s the point.
-              {category === 'substance'
-                ? ' If you ever do: your tolerance will be lower than before, and the old amount can be dangerous.'
-                : ''}
+              {c.intervalBody}
+              {category === 'substance' ? c.toleranceNote : ''}
             </Body>
           </>
         ) : null}
       </Card>
+      </Appear>
 
+      <Appear index={3}>
       <Card>
-        <Heading>What does it cost you?</Heading>
-        <Body className="mb-4 mt-1 text-sm">Optional. We’ll show what you win back.</Body>
+        <Heading>{c.costTitle}</Heading>
+        <Body className="mb-4 mt-1 text-sm">{c.costBody}</Body>
         <View className="flex-row gap-3">
           <View className="flex-1">
-            <Field label="Money / week" value={cost} onChangeText={setCost} keyboardType="decimal-pad" placeholder={preset?.costHint ?? '0'} maxLength={8} />
+            <Field label={c.money} value={cost} onChangeText={setCost} keyboardType="decimal-pad" placeholder={preset?.costHint ?? '0'} maxLength={8} />
           </View>
           <View className="flex-1">
-            <Field label="Hours / week" value={hours} onChangeText={setHours} keyboardType="decimal-pad" placeholder="0" maxLength={5} />
+            <Field label={c.hours} value={hours} onChangeText={setHours} keyboardType="decimal-pad" placeholder="0" maxLength={5} />
           </View>
         </View>
       </Card>
+      </Appear>
 
+      <Appear index={4}>
       <Card>
-        <Heading>Why do you want this?</Heading>
-        <Body className="mb-4 mt-1 text-sm">Optional. We’ll remind you of these when it gets hard.</Body>
+        <Heading>{c.whyTitle}</Heading>
+        <Body className="mb-4 mt-1 text-sm">{c.whyBody}</Body>
         {reasons.map((r, i) => (
           <Field
             key={i}
-            label={`Reason ${i + 1}`}
+            label={c.reason(i)}
             value={r}
             onChangeText={(v) => setReasons(reasons.map((x, j) => (j === i ? v : x)))}
-            placeholder={['For my kids', 'To feel clear in the mornings', 'To trust myself again'][i]}
+            placeholder={c.reasonHints[i]}
             maxLength={120}
           />
         ))}
       </Card>
+      </Appear>
 
-      <Button label={mode === 'observe' ? 'Start watching' : 'Start counting'} onPress={save} disabled={!name.trim() || saving} />
-      <Text className="mt-4 text-center font-body text-sm text-white/70">Stays on this device. Nothing is uploaded.</Text>
+      <Button label={mode === 'observe' ? c.startObserve : c.startQuit} onPress={save} disabled={!name.trim() || saving} />
+      <Text className="mt-4 text-center font-body text-sm text-white/70">{c.privacy}</Text>
     </Screen>
   );
 }

@@ -1,6 +1,6 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "types": ["node"] },
-  "include": ["**/*.ts", "../src/**/*.ts", "../nativewind-env.d.ts"],
+  "include": ["**/*.ts", "../src/**/*.ts", "../server/**/*.ts", "../nativewind-env.d.ts"],
   "exclude": []
 }

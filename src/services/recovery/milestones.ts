@@ -35,8 +35,8 @@ export function milestoneMessage(name: string, category: AddictionCategory, p: P
 
   const body =
     `You have ${p.stackedHours} hours banked, and you've gone ${p.streakDays} days without ${name}. ` +
-    `That's proof you don't need it. The longer you go, the more your body and mind get used to life without it. ` +
-    `Break time is there if you need it, but the strongest choice is to keep it banked and keep going.`;
+    `That's proof you don't need it. The longer you go, the more your body and mind settle into life without it. ` +
+    `Those hours are a record of your strength, not a plan. Keep them banked and keep going.`;
 
   return {
     title: `${p.cyclesCompleted} milestone${p.cyclesCompleted === 1 ? '' : 's'} reached`,

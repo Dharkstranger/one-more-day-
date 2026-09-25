@@ -21,7 +21,10 @@ Optional settings:
 |---|---|---|
 | `ANTHROPIC_API_KEY` | (none) | Turns on the AI sponsor. Set it in Vercel, never in the app. |
 | `SPONSOR_MODEL` | `claude-opus-5` | Claude model for the sponsor. Check current prices at https://www.anthropic.com/pricing before changing. |
-| `RATE_LIMIT_PER_MINUTE` | `20` | Sponsor requests per IP per minute, per server instance. |
+| `SCRIPTURE_MODEL` | `claude-sonnet-5` | Claude model for the Scripture Guide agent. |
+| `RATE_LIMIT_PER_MINUTE` | `20` | AI requests per IP per minute, per endpoint, per server instance. |
+
+The Scripture Guide function reads `data/bible/*.json` (about 17 MB). `vercel.json` includes these files with the function; other hosts must deploy the `data/` folder next to `server/`, or set `BIBLE_DATA_DIR`.
 
 ### Why the special headers?
 

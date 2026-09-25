@@ -15,17 +15,15 @@ import { findRiskWindows } from '../services/recovery/riskWindows';
 import { levelFor, localDay } from '../services/sunshine/engine';
 import { LEVELS } from '../services/sunshine/rules';
 import { skyIsDark } from '../theme/sky';
+import { copy } from '../copy/en';
+import { Appear } from '../components/motion/Appear';
+import { CountUp } from '../components/motion/CountUp';
+
+const c = copy.journey;
 
 const MOOD_ICON = ['·', '⛈️', '🌧️', '⛅', '🌤️', '☀️'];
 const DAYS = ['Sundays', 'Mondays', 'Tuesdays', 'Wednesdays', 'Thursdays', 'Fridays', 'Saturdays'];
-const RAY_LABEL: Record<string, string> = {
-  first_step: 'Took the first step',
-  checkin: 'Checked in',
-  urge_beaten: 'Beat an urge',
-  honest_slip: 'Was honest about a slip',
-  reflection: 'Talked it through',
-  milestone: 'Reached a milestone',
-};
+const RAY_LABEL = copy.journey.rayLabels;
 
 export default function Journey() {
   const db = useSQLiteContext();
@@ -55,14 +53,17 @@ export default function Journey() {
   return (
     <Screen level={level.level.index} footer={<BottomNav />}>
       <Title light={light} className="mt-2">
-        Your journey
+        {c.title}
       </Title>
-      <Body light={light} className="mb-5 mt-1">
-        ✨ {rays} rays of light, earned and kept.
-      </Body>
+      <View className="mb-5 mt-1 flex-row items-center">
+        <Text className="mr-1">✨</Text>
+        <CountUp value={rays} className={`font-body-black text-base ${light ? 'text-sun' : 'text-ink'}`} />
+        <Text className={`font-body text-base ${light ? 'text-white/85' : 'text-ink/80'}`}> {c.rays(rays).replace(/^\d+ /, '')}</Text>
+      </View>
 
+      <Appear index={1}>
       <Card>
-        <Heading className="mb-3">From night to sunshine</Heading>
+        <Heading className="mb-3">{c.levels}</Heading>
         {LEVELS.map((l) => {
           const reached = rays >= l.minRays;
           const current = l.index === level.level.index;
@@ -73,7 +74,7 @@ export default function Journey() {
               </View>
               <View className="flex-1">
                 <Text className={`font-body-black ${current ? 'text-ink' : reached ? 'text-ink/70' : 'text-mist'}`}>
-                  {l.name} {current ? '· you are here' : ''}
+                  {l.name} {current ? c.youAreHere : ''}
                 </Text>
                 <Text className="font-body text-xs text-mist">{reached ? l.line : `${l.minRays} rays`}</Text>
               </View>
@@ -81,9 +82,11 @@ export default function Journey() {
           );
         })}
       </Card>
+      </Appear>
 
+      <Appear index={2}>
       <Card>
-        <Heading className="mb-3">Last 14 days</Heading>
+        <Heading className="mb-3">{c.last14}</Heading>
         <View className="flex-row flex-wrap justify-between">
           {last14.map((d) => (
             <View key={d} className="mb-2 w-[13%] items-center">
@@ -92,30 +95,34 @@ export default function Journey() {
             </View>
           ))}
         </View>
-        <Text className="mt-1 font-body text-xs text-mist">Your daily check-in weather.</Text>
+        <Text className="mt-1 font-body text-xs text-mist">{c.weather}</Text>
       </Card>
+      </Appear>
 
       {data?.trackers.length ? (
+        <Appear index={2}>
         <Card>
-          <Heading className="mb-2">What you’re fighting</Heading>
+          <Heading className="mb-2">{c.fighting}</Heading>
           {data.trackers.map((t) => (
             <Pressable key={t.addiction.id} onPress={() => router.push(`/track/${t.addiction.id}`)} className="flex-row items-center justify-between border-b border-ink/5 py-3">
               <Text className="font-body-bold text-base text-ink">
                 {t.details?.emoji ?? '✨'} {t.addiction.name}
               </Text>
               <Text className="font-body text-mist">
-                {t.details?.mode === 'observe' ? `${t.stats.weeklyCounts[3]} this week` : `${t.progress.streakDays}d · best ${t.stats.longestStreakDays}d`} ›
+                {t.details?.mode === 'observe' ? c.thisWeek(t.stats.weeklyCounts[3]) : c.streak(t.progress.streakDays, t.stats.longestStreakDays)} ›
               </Text>
             </Pressable>
           ))}
         </Card>
+      </Appear>
       ) : null}
 
+      <Appear index={3}>
       <Card>
-        <Heading className="mb-2">Your patterns</Heading>
+        <Heading className="mb-2">{c.patterns}</Heading>
         {patterns.length ? (
           <>
-            <Body className="mb-2 text-sm">These are the times it tends to get hard. We’ll try to check in with you before them.</Body>
+            <Body className="mb-2 text-sm">{c.patternsBody}</Body>
             {patterns.map((p) => (
               <Text key={p} className="font-body-bold text-ink">
                 • {p}
@@ -123,12 +130,14 @@ export default function Journey() {
             ))}
           </>
         ) : (
-          <Body className="text-sm">After a few logs, you’ll see when urges tend to hit, so you can plan ahead.</Body>
+          <Body className="text-sm">{c.patternsEmpty}</Body>
         )}
       </Card>
+      </Appear>
 
+      <Appear index={4}>
       <Card>
-        <Label className="mb-2">Recent light</Label>
+        <Label className="mb-2">{c.recent}</Label>
         {history.map((r) => (
           <View key={r.id} className="flex-row justify-between py-1">
             <Text className="font-body text-ink">{RAY_LABEL[r.kind] ?? r.kind}</Text>
@@ -136,6 +145,7 @@ export default function Journey() {
           </View>
         ))}
       </Card>
+      </Appear>
     </Screen>
   );
 }

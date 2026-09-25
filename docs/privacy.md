@@ -8,7 +8,9 @@ Everything you log: trackers, slips, urges, check-ins, notes, rays, "about me" a
 
 ## What leaves, and when
 
-Only when you send a message on the **Talk** screen. That request contains:
+Only in two cases, both to the relay and then to Anthropic.
+
+**1. When you send a message on the Talk screen.** That request contains:
 
 - the messages on screen in that conversation (up to 20)
 - the addiction's name and category (e.g. "alcohol, substance")
@@ -17,7 +19,9 @@ Only when you send a message on the **Talk** screen. That request contains:
 - "about me" answers you chose to fill in
 - a handful of Bible verses the app picked
 
-It never contains: your name, email, phone number, device ID, location, log timestamps, or old notes. The code that builds it is `src/services/ai/buildContext.ts`.
+**2. When the Scripture Guide chooses a passage for you** (after a check-in, during an urge, after a slip). That request contains: the moment, your Bible language, the addiction's name and type, your feeling and what you wrote in that moment (up to 600 characters), time of day and weekday, day counts (now, before this slip, best run, slips in the last 14 days), your "faith" answer from About me, and the last 30 passages you were given. The code that builds it is `src/hooks/useScriptureGuide.ts`.
+
+Neither request ever contains your name, email, phone number, device ID, location, exact timestamps, or older notes. The sponsor's request is built in `src/services/ai/buildContext.ts`.
 
 ## The relay
 

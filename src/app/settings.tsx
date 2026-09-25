@@ -17,6 +17,12 @@ import { getProfileValue, PROFILE_KEYS, setProfileValue, SETTING_PREFIX, type Pr
 import { pickBackupFile, saveBackupFile } from '../services/backup/io';
 import { buildDailyCheckInUrl } from '../services/calendar/googleCalendar';
 import { localDay } from '../services/sunshine/engine';
+import { copy } from '../copy/en';
+import { Appear } from '../components/motion/Appear';
+import { BIBLE_LANGUAGES, BIBLE_LANGUAGE_NAMES, type BibleLanguage } from '../services/scripture/contract';
+import { getBibleLanguage, setBibleLanguage } from '../services/scripture/prefs';
+
+const c = copy.settings;
 
 const REPO_URL = 'https://github.com/Dharkstranger/one-more-day-';
 const HOURS = [7, 9, 12, 18, 20, 22];
@@ -35,6 +41,7 @@ export default function Settings() {
   const [profile, setProfile] = useState<Partial<Record<ProfileKey, string>>>({});
   const [status, setStatus] = useState<string | null>(null);
   const [confirmWipe, setConfirmWipe] = useState(0);
+  const [bibleLang, setBibleLang] = useState<BibleLanguage>('en');
 
   useFocusEffect(
     useCallback(() => {
@@ -43,6 +50,7 @@ export default function Settings() {
         setProfile(Object.fromEntries(entries));
         const h = await getProfileValue(db, `${SETTING_PREFIX}reminder_hour`);
         if (h) setHour(parseInt(h, 10));
+        setBibleLang(await getBibleLanguage(db));
       })();
     }, [db]),
   );
@@ -62,13 +70,13 @@ export default function Settings() {
 
   const saveProfile = async () => {
     for (const k of PROFILE_KEYS) await setProfileValue(db, k, (profile[k] ?? '').trim());
-    setStatus('Saved. Your sponsor will use this to give better ideas.');
+    setStatus(c.saved);
   };
 
   const backup = async () => {
     const data = await exportBackup(db);
     await saveBackupFile(`one-more-day-backup-${localDay()}.json`, JSON.stringify(data, null, 2));
-    setStatus('Backup ready. Keep it somewhere safe. It holds your private history.');
+    setStatus(c.backupReady);
   };
 
   const restore = async () => {
@@ -78,12 +86,12 @@ export default function Settings() {
     try {
       parsed = JSON.parse(text);
     } catch {
-      return setStatus('That file couldn’t be read.');
+      return setStatus(c.unreadable);
     }
     const error = validateBackup(parsed);
     if (error) return setStatus(error);
     await restoreBackup(db, parsed as BackupFile);
-    setStatus('Restored. Welcome back.');
+    setStatus(c.restored);
     router.replace('/');
   };
 
@@ -96,71 +104,92 @@ export default function Settings() {
   return (
     <Screen level={2} footer={<BottomNav />}>
       <Title light className="mt-2">
-        Settings
+        {c.title}
       </Title>
       <Body light className="mb-5 mt-1">
-        Everything here stays on this device.
+        {c.subtitle}
       </Body>
       {status ? <Text className="mb-4 rounded-2xl bg-sun p-3 font-body-bold text-ink">{status}</Text> : null}
 
+      <Appear>
+        <Card>
+          <Heading>{c.bibleTitle}</Heading>
+          <Body className="mb-3 mt-1 text-sm">{c.bibleBody}</Body>
+          <View className="flex-row flex-wrap">
+            {BIBLE_LANGUAGES.map((l) => (
+              <Chip
+                key={l}
+                label={BIBLE_LANGUAGE_NAMES[l]}
+                selected={bibleLang === l}
+                onPress={async () => {
+                  setBibleLang(l);
+                  await setBibleLanguage(db, l);
+                }}
+              />
+            ))}
+          </View>
+          {bibleLang === 'he' ? <Body className="mt-1 text-xs">{c.bibleNote}</Body> : null}
+        </Card>
+      </Appear>
+
       <Card>
-        <Heading>Daily reminder</Heading>
+        <Heading>{c.reminderTitle}</Heading>
         <Body className="mb-3 mt-1 text-sm">
-          Adds one repeating “One More Day” check-in to your Google Calendar. We never sign in to your Google account. You just tap Save.
+          {c.reminderBody}
         </Body>
-        <Label className="mb-2">Remind me at</Label>
+        <Label className="mb-2">{c.remindAt}</Label>
         <View className="mb-2 flex-row flex-wrap">
           {HOURS.map((h) => (
             <Chip key={h} label={`${h % 12 || 12}${h < 12 ? 'am' : 'pm'}`} selected={hour === h} onPress={() => setHour(h)} />
           ))}
         </View>
-        <Button label="Add to Google Calendar" icon="📅" variant="dark" onPress={addReminder} />
+        <Button label={c.addCalendar} icon="📅" variant="dark" onPress={addReminder} />
       </Card>
 
       <Card>
-        <Heading>About me</Heading>
+        <Heading>{c.aboutTitle}</Heading>
         <Body className="mb-4 mt-1 text-sm">
-          Optional. Helps your sponsor suggest things that fit your life. Shared with the AI only when you talk to it, and never with your name.
+          {c.aboutBody}
         </Body>
         {PROFILE_KEYS.map((k) => (
           <Field key={k} label={PROFILE_LABELS[k].label} value={profile[k] ?? ''} onChangeText={(v) => setProfile({ ...profile, [k]: v })} placeholder={PROFILE_LABELS[k].hint} maxLength={200} />
         ))}
-        <Button label="Save" variant="dark" onPress={saveProfile} />
+        <Button label={c.save} variant="dark" onPress={saveProfile} />
       </Card>
 
       <Card>
-        <Heading>Backup & new phone</Heading>
+        <Heading>{c.backupTitle}</Heading>
         <Body className="mb-4 mt-1 text-sm">
-          Free, always. Download a file with everything, then open it on your new phone or browser. No account needed.
+          {c.backupBody}
         </Body>
-        <Button label="Download my backup" icon="⬇️" variant="dark" onPress={backup} className="mb-2" />
-        <Button label="Restore from a backup" icon="⬆️" variant="soft" onPress={restore} />
+        <Button label={c.download} icon="⬇️" variant="dark" onPress={backup} className="mb-2" />
+        <Button label={c.restore} icon="⬆️" variant="soft" onPress={restore} />
       </Card>
 
       <CrisisBanner compact />
 
       <Card>
-        <Heading>Open source & privacy</Heading>
+        <Heading>{c.openTitle}</Heading>
         <Body className="mt-1 text-sm">
-          No accounts, no ads, no trackers. When you talk to your sponsor, only that conversation is sent to the AI, and our server keeps nothing. Read every line of code, or run your own copy.
+          {c.openBody}
         </Body>
         <Text onPress={() => Linking.openURL(REPO_URL)} className="mt-3 font-body-black text-amber underline">
-          View the code and docs ›
+          {c.viewCode}
         </Text>
         <Text className="mt-3 font-body text-xs text-mist">
-          Not medical care. Scripture: World English Bible (public domain). License: AGPL-3.0.
+          {c.legal}
         </Text>
       </Card>
 
       <Card>
-        <Heading>Delete everything</Heading>
+        <Heading>{c.deleteTitle}</Heading>
         <Body className="mb-3 mt-1 text-sm">
-          {confirmWipe ? 'This can’t be undone. All trackers, logs, check-ins and rays will be gone. Download a backup first if you might want them.' : 'Removes all your data from this device.'}
+          {confirmWipe ? c.deleteConfirmBody : c.deleteBody}
         </Body>
-        <Button label={confirmWipe ? 'Yes, delete everything' : 'Delete all my data'} variant={confirmWipe ? 'dark' : 'soft'} onPress={wipe} />
+        <Button label={confirmWipe ? c.deleteConfirm : c.deleteButton} variant={confirmWipe ? 'dark' : 'soft'} onPress={wipe} />
         {confirmWipe ? (
           <Text onPress={() => setConfirmWipe(0)} className="mt-3 text-center font-body-bold text-mist">
-            Cancel
+            {c.cancel}
           </Text>
         ) : null}
       </Card>

@@ -1,13 +1,15 @@
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { router, usePathname } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { tap } from '../services/haptics';
+import { copy } from '../copy/en';
+import { PressScale } from './motion/PressScale';
 
 const ITEMS = [
-  { href: '/', icon: '☀️', label: 'Today' },
-  { href: '/journey', icon: '🌄', label: 'Journey' },
-  { href: '/sponsor', icon: '💬', label: 'Talk' },
-  { href: '/settings', icon: '⚙️', label: 'Settings' },
+  { href: '/', icon: '☀️', label: copy.nav.today },
+  { href: '/journey', icon: '🌄', label: copy.nav.journey },
+  { href: '/sponsor', icon: '💬', label: copy.nav.talk },
+  { href: '/settings', icon: '⚙️', label: copy.nav.settings },
 ] as const;
 
 export function BottomNav() {
@@ -23,7 +25,8 @@ export function BottomNav() {
         {ITEMS.map((item) => {
           const active = path === item.href;
           return (
-            <Pressable
+            <PressScale
+              depth={0.9}
               key={item.href}
               accessibilityRole="link"
               accessibilityLabel={item.label}
@@ -36,7 +39,7 @@ export function BottomNav() {
             >
               <Text className="text-lg">{item.icon}</Text>
               <Text className={`font-body-bold text-[11px] ${active ? 'text-sun' : 'text-white/70'}`}>{item.label}</Text>
-            </Pressable>
+            </PressScale>
           );
         })}
       </View>

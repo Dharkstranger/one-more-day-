@@ -6,6 +6,7 @@ import { listLogs } from '../../db/repo/logs';
 import { computeProgress } from '../recovery/progress';
 import { findRiskWindows } from '../recovery/riskWindows';
 import { prayerChaptersFor, tagsFor } from './scriptureTags';
+import { getBibleLanguage, TRANSLATION_FOR } from '../scripture/prefs';
 import type { SponsorContext, SponsorMode } from './contract';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -20,7 +21,7 @@ export async function buildSponsorContext(
   opts: { mode: SponsorMode; addiction: AddictionRow | null; text: string; emotion?: string | null },
 ): Promise<SponsorContext> {
   const tags = tagsFor({ text: opts.text, emotion: opts.emotion, slipped: opts.mode === 'slip' });
-  const verses = await findScripturesByTags(db, tags, 5);
+  const verses = await findScripturesByTags(db, tags, 5, TRANSLATION_FOR[await getBibleLanguage(db)]);
 
   let progress: SponsorContext['progress'] = null;
   let recentPattern: string[] = [];
